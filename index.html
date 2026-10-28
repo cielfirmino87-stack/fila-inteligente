@@ -1,1 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fila Inteligente - Almoço</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f0f2f5; text-align: center; }
+    h1 { color: #1a73e8; margin-bottom: 10px; }
+    .btn-turma { background: #1a73e8; color: white; border: none; padding: 15px 20px; margin: 8px; font-size: 18px; border-radius: 8px; cursor: pointer; width: 80%; max-width: 300px; font-weight: bold; }
+    .btn-turma:active { background: #0b57d0; }
+    .btn-desfazer { background: #dc3545; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; margin-top: 20px; font-weight: bold; }
+    .tv-container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 85vh; background: #111; color: #fff; border-radius: 16px; padding: 20px; }
+    .tv-chamada { font-size: 5rem; font-weight: bold; color: #22c55e; margin: 20px 0; word-break: break-word; }
+    .historico { margin-top: 30px; text-align: left; background: white; padding: 15px; border-radius: 8px; max-width: 400px; margin-left: auto; margin-right: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .modo-link { display: inline-block; margin: 10px; padding: 10px 15px; background: #e0e0e0; border-radius: 5px; text-decoration: none; color: #333; font-weight: bold; }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
 
+  <div id="app"></div>
+
+  <script>
+    const firebaseConfig = {
+      databaseURL: "https://fila-inteligente-demo-default-rtdb.firebaseio.com"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const isTV = urlParams.get('modo') === 'tv';
+
+    function tocarAvisoSonoro() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.5);
+      } catch(e) {
+        console.log("Interação necessária para áudio.");
+      }
+    }
+
+    if (isTV) {
+      document.getElementById('app').innerHTML = `
+        <div class="tv-container">
+          <h2>PRÓXIMA TURMA PARA O ALMOÇO:</h2>
+          <div id="turmaAtual" class="tv-chamada">Aguardando...</div>
+          <p style="color: #aaa; font-size: 14px;">(Clique uma vez na tela para ativar o som do alarme)</p>
+        </div>
+      `;
+
+      document.body.addEventListener('click', () => {
+        tocarAvisoSonoro();
+      }, { once: true });
+
+      let ultimaTurma = "";
+      db.ref('chamadaAtual').on('value', (snapshot) => {
+        const turma = snapshot.val();
+        const elem = document.getElementById('turmaAtual');
+        if (turma) {
+          elem.innerText = turma;
+          if (turma !== ultimaTurma && ultimaTurma !== "") {
+            tocarAvisoSonoro();
+          }
+          ultimaTurma = turma;
+        } else {
+          elem.innerText = "Nenhuma chamada";
+        }
+      });
+
+    } else {
+      const turmas = [
+        "1º ADM", "2º ADM", "3º ADM",
+        "1º INFO", "2º INFO", "3º INFO",
+        "1º ELETRO", "2º ELETRO", "3º ELETRO"
+      ];
+
+      let html = `<h1>Painel da Merenda</h1>`;
+      html += `<p><a class="modo-link" href="?modo=tv" target="_blank">📺 Abrir Tela da TV</a></p>`;
+      html += `<h3>Chamar Turma:</h3>`;
+      
+      turmas.forEach(t => {
+        html += `<button class="btn-turma" onclick="chamar('${t}')">${t}</button><br>`;
+      });
+
+      html += `<br><button class="btn-desfazer" onclick="desfazer()">↺ Desfazer Última Chamada</button>`;
+      html += `<div class="historico"><h3>Histórico de Chamadas:</h3><ul id="listaHistorico"></ul></div>`;
+
+      document.getElementById('app').innerHTML = html;
+
+      window.chamar = function(turma) {
+        db.ref('chamadaAtual').set(turma);
+        db.ref('historico').push(turma + " - " + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}));
+      };
+
+      window.desfazer = function() {
+        db.ref('chamadaAtual').set("Chamada Cancelada");
+      };
+
+      db.ref('historico').limitToLast(5).on('value', (snapshot) => {
+        const lista = document.getElementById('listaHistorico');
+        lista.innerHTML = "";
+        snapshot.forEach(child => {
+          const li = document.createElement('li');
+          li.innerText = child.val();
+          lista.insertBefore(li, lista.firstChild);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
