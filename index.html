@@ -3,26 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fila Inteligente - Almoço</title>
+  <title>Fila Inteligente - Refeitório</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f0f2f5; text-align: center; }
-    h1 { color: #1a73e8; margin-bottom: 10px; }
-    .btn-turma { background: #1a73e8; color: white; border: none; padding: 15px 20px; margin: 8px; font-size: 18px; border-radius: 8px; cursor: pointer; width: 80%; max-width: 300px; font-weight: bold; }
-    .btn-turma:active { background: #0b57d0; }
-    .btn-desfazer { background: #dc3545; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; margin-top: 20px; font-weight: bold; }
-    .tv-container { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 85vh; background: #111; color: #fff; border-radius: 16px; padding: 20px; }
-    .tv-chamada { font-size: 5rem; font-weight: bold; color: #22c55e; margin: 20px 0; word-break: break-word; }
-    .historico { margin-top: 30px; text-align: left; background: white; padding: 15px; border-radius: 8px; max-width: 400px; margin-left: auto; margin-right: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .modo-link { display: inline-block; margin: 10px; padding: 10px 15px; background: #e0e0e0; border-radius: 5px; text-decoration: none; color: #333; font-weight: bold; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body { background-color: #f4f6f9; color: #333; min-height: 100vh; }
+    
+    /* Topo do App */
+    header { background: #1a73e8; color: white; padding: 15px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    header h1 { font-size: 1.5rem; margin-bottom: 8px; }
+    .nav-links { display: flex; justify-content: center; gap: 10px; }
+    .nav-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 6px 14px; border-radius: 20px; text-decoration: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .nav-btn.active { background: white; color: #1a73e8; }
+
+    /* Estilo do Painel do Celular */
+    .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+    .section-title { font-size: 1.1rem; color: #555; margin: 15px 0 10px 0; border-left: 4px solid #1a73e8; padding-left: 8px; }
+    .grid-turmas { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+    .btn-turma { background: white; border: 2px solid #1a73e8; color: #1a73e8; font-size: 1rem; font-weight: 600; padding: 15px 10px; border-radius: 12px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .btn-turma:active { background: #1a73e8; color: white; transform: scale(0.96); }
+    
+    .acoes-rapidas { display: flex; gap: 10px; margin-top: 15px; }
+    .btn-acao { flex: 1; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; color: white; font-size: 0.9rem; }
+    .btn-repetir { background: #f59e0b; }
+    .btn-cancelar { background: #ef4444; }
+
+    .card-historico { background: white; border-radius: 12px; padding: 15px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .lista-historico { list-style: none; margin-top: 10px; }
+    .lista-historico li { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 0.9rem; }
+
+    /* Estilo do Modo TV (Escuro) */
+    body.tv-mode { background: #0f172a; color: white; }
+    .tv-wrapper { display: flex; flex-direction: column; justify-content: space-between; min-height: 90vh; text-align: center; padding: 20px; }
+    .tv-header { display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px 30px; border-radius: 16px; margin-bottom: 20px; }
+    .tv-relogio { font-size: 1.5rem; font-weight: 600; color: #38bdf8; }
+    .tv-display { background: #1e293b; border: 3px solid #3b82f6; border-radius: 24px; padding: 40px 20px; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3); margin: 20px 0; }
+    .tv-subtitulo { font-size: 1.5rem; color: #94a3b8; letter-spacing: 2px; }
+    .tv-turma-nome { font-size: 5rem; font-weight: 800; color: #4ade80; margin: 20px 0; text-shadow: 0 0 20px rgba(74, 222, 128, 0.4); min-height: 120px; word-break: break-word; }
+    .tv-rodape { background: #1e293b; padding: 20px; border-radius: 16px; text-align: left; }
+    .tv-rodape h4 { color: #94a3b8; margin-bottom: 10px; }
+    .tv-historico-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+    .chip { background: #334155; color: white; padding: 6px 14px; border-radius: 20px; font-size: 1rem; font-weight: 600; }
+    .audio-alert { background: #eab308; color: #000; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
   </style>
+
+  <!-- Firebase Scripts -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
-  <div id="app"></div>
+  <header>
+    <h1>🍽️ Fila Inteligente</h1>
+    <div class="nav-links">
+      <button class="nav-btn" id="btnModoMobile" onclick="mudarModo('mobile')">📱 Celular (Painel)</button>
+      <button class="nav-btn" id="btnModoTV" onclick="mudarModo('tv')">📺 TV (Exibição)</button>
+    </div>
+  </header>
+
+  <div id="conteudoApp"></div>
 
   <script>
+    // Configuração do Firebase Realtime Database
     const firebaseConfig = {
       databaseURL: "https://fila-inteligente-demo-default-rtdb.firebaseio.com"
     };
@@ -32,94 +74,191 @@
     }
     const db = firebase.database();
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const isTV = urlParams.get('modo') === 'tv';
+    // Turmas Cadastradas (Edite os nomes aqui se desejar)
+    const listaTurmas = [
+      "1º ADM", "2º ADM", "3º ADM",
+      "1º INFO", "2º INFO", "3º INFO",
+      "1º ELETRO", "2º ELETRO", "3º ELETRO",
+      "6º ANO A", "7º ANO A", "8º ANO A"
+    ];
 
-    function tocarAvisoSonoro() {
+    // Verificar parâmetro na URL (?modo=tv)
+    const params = new URLSearchParams(window.location.search);
+    let modoAtual = params.get('modo') === 'tv' ? 'tv' : 'mobile';
+
+    function mudarModo(novoModo) {
+      modoAtual = novoModo;
+      const url = new URL(window.location);
+      if (novoModo === 'tv') {
+        url.searchParams.set('modo', 'tv');
+      } else {
+        url.searchParams.delete('modo');
+      }
+      window.history.pushState({}, '', url);
+      renderizar();
+    }
+
+    // Sinal Sonoro e Voz
+    function emitirSinalEVoz(texto) {
       try {
+        // 1. Apito/Gong
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime); // Dó
+        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15); // Mi
+        osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.3); // Sol
         gain.gain.setValueAtTime(0.3, ctx.currentTime);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.5);
+        osc.stop(ctx.currentTime + 0.6);
+
+        // 2. Voz sintetizada (Fala o nome da turma na TV)
+        setTimeout(() => {
+          if ('speechSynthesis' in window && texto && !texto.includes('Cancelada') && !texto.includes('Aguardando')) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(`Atenção, turma ${texto}, dirigir-se ao refeitório.`);
+            msg.lang = 'pt-BR';
+            msg.rate = 0.9;
+            window.speechSynthesis.speak(msg);
+          }
+        }, 700);
+
       } catch(e) {
-        console.log("Interação necessária para áudio.");
+        console.log("Áudio aguardando clique de interação do usuário.");
       }
     }
 
-    if (isTV) {
-      document.getElementById('app').innerHTML = `
-        <div class="tv-container">
-          <h2>PRÓXIMA TURMA PARA O ALMOÇO:</h2>
-          <div id="turmaAtual" class="tv-chamada">Aguardando...</div>
-          <p style="color: #aaa; font-size: 14px;">(Clique uma vez na tela para ativar o som do alarme)</p>
-        </div>
-      `;
+    function renderizar() {
+      const container = document.getElementById('conteudoApp');
+      
+      if (modoAtual === 'tv') {
+        document.body.classList.add('tv-mode');
+        document.getElementById('btnModoTV').classList.add('active');
+        document.getElementById('btnModoMobile').classList.remove('active');
 
-      document.body.addEventListener('click', () => {
-        tocarAvisoSonoro();
-      }, { once: true });
+        container.innerHTML = `
+          <div class="tv-wrapper">
+            <div class="audio-alert" onclick="this.style.display='none'; emitirSinalEVoz('');">
+              🔊 CLIQUE AQUI UMA VEZ PARA ATIVAR O SOM E A VOZ DA TV
+            </div>
+            <div class="tv-header">
+              <h2>PAINEL DO REFEITÓRIO</h2>
+              <div class="tv-relogio" id="relogio">00:00:00</div>
+            </div>
+            
+            <div class="tv-display">
+              <div class="tv-subtitulo">PRÓXIMA TURMA:</div>
+              <div class="tv-turma-nome" id="tvTurma">Aguardando...</div>
+            </div>
 
-      let ultimaTurma = "";
-      db.ref('chamadaAtual').on('value', (snapshot) => {
-        const turma = snapshot.val();
-        const elem = document.getElementById('turmaAtual');
-        if (turma) {
-          elem.innerText = turma;
-          if (turma !== ultimaTurma && ultimaTurma !== "") {
-            tocarAvisoSonoro();
+            <div class="tv-rodape">
+              <h4>ÚLTIMAS TURMAS CHAMADAS:</h4>
+              <div class="tv-historico-chips" id="tvHistorico"></div>
+            </div>
+          </div>
+        `;
+
+        // Relógio da TV
+        setInterval(() => {
+          const relogio = document.getElementById('relogio');
+          if (relogio) relogio.innerText = new Date().toLocaleTimeString('pt-BR');
+        }, 1000);
+
+        // Escutar atualizações do Firebase
+        let ultimaTurma = "";
+        db.ref('chamadaAtual').on('value', (snapshot) => {
+          const turma = snapshot.val() || "Aguardando...";
+          const el = document.getElementById('tvTurma');
+          if (el) el.innerText = turma;
+
+          if (turma !== ultimaTurma && turma !== "Aguardando...") {
+            emitirSinalEVoz(turma);
+            ultimaTurma = turma;
           }
-          ultimaTurma = turma;
-        } else {
-          elem.innerText = "Nenhuma chamada";
+        });
+
+        db.ref('historico').limitToLast(5).on('value', (snapshot) => {
+          const chipsContainer = document.getElementById('tvHistorico');
+          if (!chipsContainer) return;
+          chipsContainer.innerHTML = "";
+          snapshot.forEach(child => {
+            const chip = document.createElement('span');
+            chip.className = 'chip';
+            chip.innerText = child.val();
+            chipsContainer.insertBefore(chip, chipsContainer.firstChild);
+          });
+        });
+
+      } else {
+        document.body.classList.remove('tv-mode');
+        document.getElementById('btnModoMobile').classList.add('active');
+        document.getElementById('btnModoTV').classList.remove('active');
+
+        let html = `
+          <div class="container">
+            <div class="section-title">Selecione a turma para chamar:</div>
+            <div class="grid-turmas">
+        `;
+
+        listaTurmas.forEach(t => {
+          html += `<button class="btn-turma" onclick="chamarTurma('${t}')">${t}</button>`;
+        });
+
+        html += `
+            </div>
+            <div class="acoes-rapidas">
+              <button class="btn-acao btn-repetir" onclick="repetirChamada()">🔔 Repetir Chamada</button>
+              <button class="btn-acao btn-cancelar" onclick="cancelarChamada()">❌ Cancelar Chamada</button>
+            </div>
+
+            <div class="card-historico">
+              <h3>📋 Histórico de Chamadas</h3>
+              <ul class="lista-historico" id="listaHistorico"></ul>
+            </div>
+          </div>
+        `;
+
+        container.innerHTML = html;
+
+        db.ref('historico').limitToLast(6).on('value', (snapshot) => {
+          const lista = document.getElementById('listaHistorico');
+          if (!lista) return;
+          lista.innerHTML = "";
+          snapshot.forEach(child => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${child.val()}</span>`;
+            lista.insertBefore(li, lista.firstChild);
+          });
+        });
+      }
+    }
+
+    // Ações do Painel do Celular
+    window.chamarTurma = function(turma) {
+      const hora = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+      db.ref('chamadaAtual').set(turma);
+      db.ref('historico').push(`${turma} (${hora})`);
+    };
+
+    window.repetirChamada = function() {
+      db.ref('chamadaAtual').once('value', (snapshot) => {
+        const atual = snapshot.val();
+        if (atual) {
+          db.ref('chamadaAtual').set(atual + " "); // força atualização
+          setTimeout(() => db.ref('chamadaAtual').set(atual), 100);
         }
       });
+    };
 
-    } else {
-      const turmas = [
-        "1ºA ADM", "2ºA ADM", "3ºA HOS",
-        "1ºB ADM", "2ºA ", "3ºA",
-        "1ºA HOS", "2ºB ",
-      ];
+    window.cancelarChamada = function() {
+      db.ref('chamadaAtual').set("Chamada Cancelada");
+    };
 
-      let html = `<h1>Painel da Merenda</h1>`;
-      html += `<p><a class="modo-link" href="?modo=tv" target="_blank">📺 Abrir Tela da TV</a></p>`;
-      html += `<h3>Chamar Turma:</h3>`;
-      
-      turmas.forEach(t => {
-        html += `<button class="btn-turma" onclick="chamar('${t}')">${t}</button><br>`;
-      });
-
-      html += `<br><button class="btn-desfazer" onclick="desfazer()">↺ Desfazer Última Chamada</button>`;
-      html += `<div class="historico"><h3>Histórico de Chamadas:</h3><ul id="listaHistorico"></ul></div>`;
-
-      document.getElementById('app').innerHTML = html;
-
-      window.chamar = function(turma) {
-        db.ref('chamadaAtual').set(turma);
-        db.ref('historico').push(turma + " - " + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}));
-      };
-
-      window.desfazer = function() {
-        db.ref('chamadaAtual').set("Chamada Cancelada");
-      };
-
-      db.ref('historico').limitToLast(5).on('value', (snapshot) => {
-        const lista = document.getElementById('listaHistorico');
-        lista.innerHTML = "";
-        snapshot.forEach(child => {
-          const li = document.createElement('li');
-          li.innerText = child.val();
-          lista.insertBefore(li, lista.firstChild);
-        });
-      });
-    }
+    // Inicialização
+    renderizar();
   </script>
 </body>
 </html>
