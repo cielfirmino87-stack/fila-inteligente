@@ -3,84 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fila Inteligente</title>
+  <title>MaxFila Pro - Refeitório</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
     body { background-color: #f1f5f9; color: #1e293b; min-height: 100vh; }
     
-    header { background: #0284c7; color: white; padding: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    header h1 { font-size: 1.4rem; margin-bottom: 8px; font-weight: 800; }
-    .nav-links { display: flex; justify-content: center; gap: 8px; }
-    .nav-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    header { background: linear-gradient(135deg, #0284c7, #0f766e); color: white; padding: 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    header h1 { font-size: 1.5rem; margin-bottom: 8px; font-weight: 800; letter-spacing: 0.5px; }
+    .nav-links { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    .nav-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
     .nav-btn.active { background: white; color: #0284c7; font-weight: 800; }
 
     .status-bar { background: #0f172a; color: #38bdf8; text-align: center; font-size: 0.8rem; padding: 6px; font-weight: 600; }
 
     /* Estilo Telemóvel */
     .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
-    .banner-chamada { background: #0284c7; color: white; text-align: center; padding: 18px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(2,132,199,0.3); }
-    .banner-chamada .valor { font-size: 2.2rem; font-weight: 800; color: #facc15; margin-top: 4px; }
+    .banner-chamada { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; text-align: center; padding: 18px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(2,132,199,0.3); }
+    .banner-chamada .valor { font-size: 2.2rem; font-weight: 800; color: #facc15; margin-top: 4px; word-break: break-word; }
 
     .grid-turmas { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-    .btn-turma { background: white; border: 2px solid #0284c7; color: #0284c7; font-size: 1rem; font-weight: 700; padding: 15px 8px; border-radius: 12px; cursor: pointer; }
-    .btn-turma:active { background: #0284c7; color: white; }
+    .btn-turma { background: white; border: 2px solid #0284c7; color: #0284c7; font-size: 1rem; font-weight: 700; padding: 15px 8px; border-radius: 12px; cursor: pointer; transition: 0.15s; }
+    .btn-turma:active { background: #0284c7; color: white; transform: scale(0.95); }
 
     .acoes-rapidas { display: flex; gap: 10px; margin-top: 15px; }
-    .btn-acao { flex: 1; border: none; padding: 12px; border-radius: 10px; font-weight: 700; color: white; cursor: pointer; }
+    .btn-acao { flex: 1; border: none; padding: 12px; border-radius: 10px; font-weight: 700; color: white; cursor: pointer; font-size: 0.9rem; }
     .btn-cancelar { background: #ef4444; }
 
     .card-box { background: white; border-radius: 14px; padding: 16px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
     .lista-historico { list-style: none; margin-top: 8px; }
     .lista-historico li { padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-weight: 600; font-size: 0.9rem; }
 
+    /* Estilo Edição de Turmas */
+    .form-group { display: flex; gap: 8px; margin-bottom: 15px; }
+    .input-turma { flex: 1; padding: 10px 14px; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 0.95rem; font-weight: 600; }
+    .btn-add { background: #10b981; color: white; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    .lista-edicao { list-style: none; }
+    .item-edicao { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8fafc; border-radius: 8px; margin-bottom: 6px; border: 1px solid #e2e8f0; font-weight: 700; }
+    .btn-del { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 700; }
+
     /* Estilo TV */
     body.tv-mode { background: #090d16; color: white; }
     .tv-wrapper { display: flex; flex-direction: column; justify-content: space-between; min-height: 85vh; text-align: center; padding: 20px; max-width: 1000px; margin: 0 auto; }
-    .tv-header { display: flex; justify-content: space-between; align-items: center; background: #161e2e; padding: 15px 25px; border-radius: 16px; }
-    .tv-display { background: #161e2e; border: 4px solid #0284c7; border-radius: 24px; padding: 40px 20px; margin: 20px 0; box-shadow: 0 0 30px rgba(2,132,199,0.3); }
-    .tv-turma-nome { font-size: 5.5rem; font-weight: 800; color: #4ade80; margin: 15px 0; min-height: 130px; }
+    .tv-header { display: flex; justify-content: space-between; align-items: center; background: #161e2e; padding: 15px 25px; border-radius: 16px; border: 1px solid #233044; }
+    .tv-titulo { font-size: 1.5rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; }
+    .tv-display { background: #161e2e; border: 4px solid #0284c7; border-radius: 24px; padding: 40px 20px; margin: 20px 0; box-shadow: 0 0 35px rgba(2,132,199,0.35); }
+    .tv-turma-nome { font-size: 5.5rem; font-weight: 800; color: #4ade80; margin: 15px 0; min-height: 130px; word-break: break-word; }
     .audio-alert { background: #f59e0b; color: #000; padding: 12px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-bottom: 15px; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>🍽️ Fila Inteligente</h1>
+    <h1>⚡ MaxFila Pro</h1>
     <div class="nav-links">
       <button class="nav-btn" id="btnMobile" onclick="mudarModo('mobile')">📱 Celular</button>
       <button class="nav-btn" id="btnTV" onclick="mudarModo('tv')">📺 TV</button>
+      <button class="nav-btn" id="btnAdmin" onclick="mudarModo('admin')">✏️ Editar Turmas</button>
     </div>
   </header>
 
   <div class="status-bar">
-    Canal Conectado: <strong id="txtCanal">fila-escola-ciel-87</strong>
+    Canal Conectado: <strong id="txtCanal">fila-maxciel-smart</strong>
   </div>
 
   <div id="app"></div>
 
   <script>
-    const canal = "fila-escola-ciel-87";
+    const canal = "fila-maxciel-smart";
     let turmaAtual = "Aguardando...";
     let historico = [];
 
-    const params = new URLSearchParams(window.location.search);
-    let modo = params.get('modo') === 'tv' ? 'tv' : 'mobile';
+    // Turmas Padrão (salvas no navegador e sincronizadas)
+    let turmas = JSON.parse(localStorage.getItem('maxfila_turmas')) || [
+      "1º ADM", "2º ADM", "3º ADM", 
+      "1º INFO", "2º INFO", "3º INFO", 
+      "6º ANO A", "7º ANO A", "8º ANO A"
+    ];
 
-    const turmas = ["1º ADM", "2º ADM", "3º ADM", "1º INFO", "2º INFO", "3º INFO", "6º ANO A", "7º ANO A", "8º ANO A"];
+    const params = new URLSearchParams(window.location.search);
+    let modo = params.get('modo') || 'mobile';
 
     function mudarModo(m) {
       modo = m;
       const url = new URL(window.location);
       if (m === 'tv') url.searchParams.set('modo', 'tv');
+      else if (m === 'admin') url.searchParams.set('modo', 'admin');
       else url.searchParams.delete('modo');
       window.history.pushState({}, '', url);
       render();
     }
 
     // --- CONEXÃO COM A REDE ---
-    const bc = new BroadcastChannel('fila_channel_local');
-    bc.onmessage = (e) => atualizarTela(e.data);
+    const bc = new BroadcastChannel('maxfila_channel_local');
+    bc.onmessage = (e) => processarSinal(e.data);
 
     let es = null;
     function conectar() {
@@ -90,14 +106,14 @@
         try {
           const data = JSON.parse(e.data);
           if (data.event === 'message' && data.message) {
-            atualizarTela(data.message);
+            processarSinal(data.message);
           }
         } catch(err) {}
       };
     }
 
     function enviarRede(texto) {
-      atualizarTela(texto);
+      processarSinal(texto);
       bc.postMessage(texto);
       fetch(`https://ntfy.sh/${canal}`, {
         method: 'POST',
@@ -105,7 +121,17 @@
       }).catch(err => console.error(err));
     }
 
-    function atualizarTela(texto) {
+    function processarSinal(texto) {
+      // Se for atualização de turmas
+      if (texto.startsWith("CFG_TURMAS:")) {
+        const listaStr = texto.replace("CFG_TURMAS:", "");
+        turmas = listaStr.split("|");
+        localStorage.setItem('maxfila_turmas', JSON.stringify(turmas));
+        if (modo !== 'tv') render();
+        return;
+      }
+
+      // Se foi uma chamada normal de turma
       turmaAtual = texto;
       
       if (texto !== "Aguardando..." && texto !== "Chamada Cancelada") {
@@ -155,6 +181,7 @@
       document.body.classList.remove('tv-mode');
       document.getElementById('btnMobile').classList.remove('active');
       document.getElementById('btnTV').classList.remove('active');
+      document.getElementById('btnAdmin').classList.remove('active');
 
       if (modo === 'tv') {
         document.body.classList.add('tv-mode');
@@ -166,11 +193,11 @@
               🔊 CLIQUE AQUI UMA VEZ NA TV PARA ATIVAR O SOM E VOZ
             </div>
             <div class="tv-header">
-              <h2>PAINEL DO REFEITÓRIO</h2>
+              <div class="tv-titulo">⚡ MAXFILA PRO</div>
               <div id="relogio">00:00:00</div>
             </div>
             <div class="tv-display">
-              <div style="color:#94a3b8; font-weight:700;">PRÓXIMA TURMA:</div>
+              <div style="color:#94a3b8; font-weight:700;">PRÓXIMA TURMA PARA O REFEITÓRIO:</div>
               <div class="tv-turma-nome" id="tvTurma">${turmaAtual}</div>
             </div>
           </div>
@@ -180,6 +207,38 @@
           const r = document.getElementById('relogio');
           if (r) r.innerText = new Date().toLocaleTimeString('pt-BR');
         }, 1000);
+
+      } else if (modo === 'admin') {
+        document.getElementById('btnAdmin').classList.add('active');
+
+        let html = `
+          <div class="container">
+            <div class="card-box">
+              <h3 style="margin-bottom:12px;">✏️ Gerenciar Turmas do Sistema</h3>
+              <div class="form-group">
+                <input type="text" id="inputNovaTurma" class="input-turma" placeholder="Ex: 9º ANO B">
+                <button class="btn-add" onclick="adicionarTurma()">➕ Adicionar</button>
+              </div>
+
+              <ul class="lista-edicao">
+        `;
+
+        turmas.forEach((t, index) => {
+          html += `
+            <li class="item-edicao">
+              <span>${t}</span>
+              <button class="btn-del" onclick="removerTurma(${index})">🗑️ Excluir</button>
+            </li>
+          `;
+        });
+
+        html += `
+              </ul>
+            </div>
+          </div>
+        `;
+
+        container.innerHTML = html;
 
       } else {
         document.getElementById('btnMobile').classList.add('active');
@@ -215,6 +274,29 @@
         container.innerHTML = html;
         atualizarHistoricoUI();
       }
+    }
+
+    // --- FUNÇÕES DE GERENCIAMENTO DE TURMAS ---
+    window.adicionarTurma = function() {
+      const input = document.getElementById('inputNovaTurma');
+      const nome = input.value.trim().toUpperCase();
+      if (nome) {
+        turmas.push(nome);
+        salvarESincronizarTurmas();
+        input.value = "";
+        render();
+      }
+    };
+
+    window.removerTurma = function(index) {
+      turmas.splice(index, 1);
+      salvarESincronizarTurmas();
+      render();
+    };
+
+    function salvarESincronizarTurmas() {
+      localStorage.setItem('maxfila_turmas', JSON.stringify(turmas));
+      enviarRede("CFG_TURMAS:" + turmas.join("|"));
     }
 
     function atualizarHistoricoUI() {
