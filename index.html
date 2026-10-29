@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MaxFila Pro - Refeitório</title>
+  <title>Fila Inteligente - Refeitório</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
@@ -55,7 +55,7 @@
 <body>
 
   <header>
-    <h1>⚡ MaxFila Pro</h1>
+    <h1>🍽️ Fila Inteligente</h1>
     <div class="nav-links">
       <button class="nav-btn" id="btnMobile" onclick="mudarModo('mobile')">📱 Celular</button>
       <button class="nav-btn" id="btnTV" onclick="mudarModo('tv')">📺 TV</button>
@@ -64,18 +64,18 @@
   </header>
 
   <div class="status-bar">
-    Canal Conectado: <strong id="txtCanal">fila-maxciel-smart</strong>
+    Canal Conectado: <strong id="txtCanal">fila-inteligente-refeitorio</strong>
   </div>
 
   <div id="app"></div>
 
   <script>
-    const canal = "fila-maxciel-smart";
+    const canal = "fila-inteligente-refeitorio";
     let turmaAtual = "Aguardando...";
     let historico = [];
 
     // Turmas Padrão (salvas no navegador e sincronizadas)
-    let turmas = JSON.parse(localStorage.getItem('maxfila_turmas')) || [
+    let turmas = JSON.parse(localStorage.getItem('filainteligente_turmas')) || [
       "1º ADM", "2º ADM", "3º ADM", 
       "1º INFO", "2º INFO", "3º INFO", 
       "6º ANO A", "7º ANO A", "8º ANO A"
@@ -95,7 +95,7 @@
     }
 
     // --- CONEXÃO COM A REDE ---
-    const bc = new BroadcastChannel('maxfila_channel_local');
+    const bc = new BroadcastChannel('filainteligente_channel_local');
     bc.onmessage = (e) => processarSinal(e.data);
 
     let es = null;
@@ -126,7 +126,7 @@
       if (texto.startsWith("CFG_TURMAS:")) {
         const listaStr = texto.replace("CFG_TURMAS:", "");
         turmas = listaStr.split("|");
-        localStorage.setItem('maxfila_turmas', JSON.stringify(turmas));
+        localStorage.setItem('filainteligente_turmas', JSON.stringify(turmas));
         if (modo !== 'tv') render();
         return;
       }
@@ -141,177 +141,5 @@
       }
 
       const elTv = document.getElementById('tvTurma');
-      if (elTv) elTv.innerText = turmaAtual;
-
-      const elMob = document.getElementById('mobTurma');
-      if (elMob) elMob.innerText = turmaAtual;
-
-      if (modo === 'tv' && texto !== "Aguardando...") {
-        falarNaTV(texto);
-      }
-
-      atualizarHistoricoUI();
-    }
-
-    function falarNaTV(texto) {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.4);
-
-        setTimeout(() => {
-          if ('speechSynthesis' in window && !texto.includes('Cancelada')) {
-            window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(`Atenção, turma ${texto}, dirigir-se ao refeitório.`);
-            msg.lang = 'pt-BR';
-            window.speechSynthesis.speak(msg);
-          }
-        }, 500);
-      } catch(e) {}
-    }
-
-    function render() {
-      const container = document.getElementById('app');
-      document.body.classList.remove('tv-mode');
-      document.getElementById('btnMobile').classList.remove('active');
-      document.getElementById('btnTV').classList.remove('active');
-      document.getElementById('btnAdmin').classList.remove('active');
-
-      if (modo === 'tv') {
-        document.body.classList.add('tv-mode');
-        document.getElementById('btnTV').classList.add('active');
-
-        container.innerHTML = `
-          <div class="tv-wrapper">
-            <div class="audio-alert" onclick="this.style.display='none'; falarNaTV('');">
-              🔊 CLIQUE AQUI UMA VEZ NA TV PARA ATIVAR O SOM E VOZ
-            </div>
-            <div class="tv-header">
-              <div class="tv-titulo">⚡ MAXFILA PRO</div>
-              <div id="relogio">00:00:00</div>
-            </div>
-            <div class="tv-display">
-              <div style="color:#94a3b8; font-weight:700;">PRÓXIMA TURMA PARA O REFEITÓRIO:</div>
-              <div class="tv-turma-nome" id="tvTurma">${turmaAtual}</div>
-            </div>
-          </div>
-        `;
-
-        setInterval(() => {
-          const r = document.getElementById('relogio');
-          if (r) r.innerText = new Date().toLocaleTimeString('pt-BR');
-        }, 1000);
-
-      } else if (modo === 'admin') {
-        document.getElementById('btnAdmin').classList.add('active');
-
-        let html = `
-          <div class="container">
-            <div class="card-box">
-              <h3 style="margin-bottom:12px;">✏️ Gerenciar Turmas do Sistema</h3>
-              <div class="form-group">
-                <input type="text" id="inputNovaTurma" class="input-turma" placeholder="Ex: 9º ANO B">
-                <button class="btn-add" onclick="adicionarTurma()">➕ Adicionar</button>
-              </div>
-
-              <ul class="lista-edicao">
-        `;
-
-        turmas.forEach((t, index) => {
-          html += `
-            <li class="item-edicao">
-              <span>${t}</span>
-              <button class="btn-del" onclick="removerTurma(${index})">🗑️ Excluir</button>
-            </li>
-          `;
-        });
-
-        html += `
-              </ul>
-            </div>
-          </div>
-        `;
-
-        container.innerHTML = html;
-
-      } else {
-        document.getElementById('btnMobile').classList.add('active');
-
-        let html = `
-          <div class="container">
-            <div class="banner-chamada">
-              <div style="font-size:0.85rem; text-transform:uppercase; font-weight:700;">Chamando na TV:</div>
-              <div class="valor" id="mobTurma">${turmaAtual}</div>
-            </div>
-
-            <div style="margin-bottom:10px; font-weight:700; color:#475569;">Clique para chamar:</div>
-            <div class="grid-turmas">
-        `;
-
-        turmas.forEach(t => {
-          html += `<button class="btn-turma" onclick="enviarRede('${t}')">${t}</button>`;
-        });
-
-        html += `
-            </div>
-            <div class="acoes-rapidas">
-              <button class="btn-acao btn-cancelar" onclick="enviarRede('Chamada Cancelada')">❌ Cancelar Chamada</button>
-            </div>
-
-            <div class="card-box">
-              <h3>📋 Últimas Chamadas</h3>
-              <ul class="lista-historico" id="listaHist"></ul>
-            </div>
-          </div>
-        `;
-
-        container.innerHTML = html;
-        atualizarHistoricoUI();
-      }
-    }
-
-    // --- FUNÇÕES DE GERENCIAMENTO DE TURMAS ---
-    window.adicionarTurma = function() {
-      const input = document.getElementById('inputNovaTurma');
-      const nome = input.value.trim().toUpperCase();
-      if (nome) {
-        turmas.push(nome);
-        salvarESincronizarTurmas();
-        input.value = "";
-        render();
-      }
-    };
-
-    window.removerTurma = function(index) {
-      turmas.splice(index, 1);
-      salvarESincronizarTurmas();
-      render();
-    };
-
-    function salvarESincronizarTurmas() {
-      localStorage.setItem('maxfila_turmas', JSON.stringify(turmas));
-      enviarRede("CFG_TURMAS:" + turmas.join("|"));
-    }
-
-    function atualizarHistoricoUI() {
-      const el = document.getElementById('listaHist');
-      if (!el) return;
-      el.innerHTML = "";
-      historico.forEach(item => {
-        const li = document.createElement('li');
-        li.innerText = item;
-        el.appendChild(li);
-      });
-    }
-
-    conectar();
-    render();
-  </script>
-</body>
-</html>
+      if (el
+        
