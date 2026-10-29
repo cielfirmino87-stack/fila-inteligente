@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fila Inteligente Pro - Refeitório</title>
+  <title>Fila Inteligente Pro - Sincronizado</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
@@ -16,6 +16,20 @@
     .nav-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
     .nav-btn:hover { background: rgba(255,255,255,0.3); }
     .nav-btn.active { background: white; color: #0284c7; }
+
+    /* Cartão de Sincronização em Tempo Real (Visível em todos os telemóveis) */
+    .banner-chamada-global {
+      background: #10b981;
+      color: white;
+      text-align: center;
+      padding: 18px 10px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      animation: pulse 2s infinite;
+    }
+    .banner-chamada-global .label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; font-weight: 700; }
+    .banner-chamada-global .valor { font-size: 2.2rem; font-weight: 800; margin-top: 4px; word-break: break-word; }
 
     /* Estilo do Painel do Celular */
     .container { max-width: 650px; margin: 20px auto; padding: 0 15px; }
@@ -41,7 +55,7 @@
     .item-turma-gerenciar { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8fafc; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e2e8f0; }
     .btn-del { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 700; }
 
-    /* Modo TV (Modo Escuro HD) */
+    /* Modo TV (Escuro HD) */
     body.tv-mode { background: #090d16; color: white; }
     .tv-wrapper { display: flex; flex-direction: column; justify-content: space-between; min-height: 90vh; text-align: center; padding: 20px; max-width: 1200px; margin: 0 auto; }
     .tv-header { display: flex; justify-content: space-between; align-items: center; background: #161e2e; padding: 18px 30px; border-radius: 18px; border: 1px solid #233044; }
@@ -64,7 +78,7 @@
 <body>
 
   <header>
-    <h1 id="headerTitulo">🍽️ Fila Inteligente Pro</h1>
+    <h1>🍽️ Fila Inteligente Pro</h1>
     <div class="nav-links">
       <button class="nav-btn" id="btnModoMobile" onclick="mudarModo('mobile')">📱 Celular (Painel)</button>
       <button class="nav-btn" id="btnModoTV" onclick="mudarModo('tv')">📺 TV (Exibição)</button>
@@ -88,13 +102,12 @@
     // Estado Local
     let turmasAtuais = [];
     let nomeEscola = "Minha Escola";
-    let fraseVoz = "Atenção, turma {TURMA}, dirigir-se ao refeitório.";
+    let turmaChamadaAtual = "Aguardando...";
 
     // Verificar parâmetros da URL
     const params = new URLSearchParams(window.location.search);
     let modoAtual = params.get('modo') || 'mobile';
 
-    // Mudar de aba/modo
     function mudarModo(novoModo) {
       modoAtual = novoModo;
       const url = new URL(window.location);
@@ -109,31 +122,46 @@
       renderizar();
     }
 
-    // Carregar Configurações e Turmas do Firebase
-    db.ref('config').on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        if (data.nomeEscola) nomeEscola = data.nomeEscola;
-        if (data.fraseVoz) fraseVoz = data.fraseVoz;
-      }
+    // Escutar Configurações da Escola
+    db.ref('config/nomeEscola').on('value', (snapshot) => {
+      if (snapshot.val()) nomeEscola = snapshot.val();
     });
 
+    // Escutar Turmas Cadastradas
     db.ref('turmas').on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         turmasAtuais = Object.values(data);
       } else {
-        // Padrão inicial se estiver vazio
         turmasAtuais = ["1º ADM", "2º ADM", "3º ADM", "1º INFO", "2º INFO", "3º INFO", "6º ANO A", "7º ANO A", "8º ANO A"];
         db.ref('turmas').set(turmasAtuais);
       }
       if (modoAtual !== 'tv') renderizar();
     });
 
-    // Função para Áudio e Voz da TV
+    // ESCUTA GLOBAL: Atualiza TODOS os ecrãs/links ao mesmo tempo
+    let ultimaTurmaSom = "";
+    db.ref('chamadaAtual').on('value', (snapshot) => {
+      turmaChamadaAtual = snapshot.val() || "Aguardando...";
+      
+      // Atualiza o painel da TV
+      const elTv = document.getElementById('tvTurma');
+      if (elTv) elTv.innerText = turmaChamadaAtual;
+
+      // Atualiza o painel do Telemóvel (Banner Superior)
+      const elMobile = document.getElementById('chamadaAtualMobile');
+      if (elMobile) elMobile.innerText = turmaChamadaAtual;
+
+      // Se estiver no Modo TV, toca o som e fala o nome
+      if (modoAtual === 'tv' && turmaChamadaAtual !== ultimaTurmaSom && turmaChamadaAtual !== "Aguardando...") {
+        emitirSinalEVoz(turmaChamadaAtual);
+        ultimaTurmaSom = turmaChamadaAtual;
+      }
+    });
+
+    // Som e Voz da TV
     function emitirSinalEVoz(texto) {
       try {
-        // Sinal Sonoro (Apito/Chime)
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -147,34 +175,31 @@
         osc.start();
         osc.stop(ctx.currentTime + 0.6);
 
-        // Voz Sintetizada em Português
         setTimeout(() => {
           if ('speechSynthesis' in window && texto && !texto.includes('Cancelada') && !texto.includes('Aguardando')) {
             window.speechSynthesis.cancel();
-            const fala = fraseVoz.replace('{TURMA}', texto);
-            const msg = new SpeechSynthesisUtterance(fala);
+            const msg = new SpeechSynthesisUtterance(`Atenção, turma ${texto}, dirigir-se ao refeitório.`);
             msg.lang = 'pt-BR';
             msg.rate = 0.9;
             window.speechSynthesis.speak(msg);
           }
         }, 700);
       } catch(e) {
-        console.log("Aguardando interação para ativar som.");
+        console.log("Som aguardando clique.");
       }
     }
 
-    // Renderização do App
+    // Renderizar Interface
     function renderizar() {
       const container = document.getElementById('conteudoApp');
       
-      // Reset de Classes
       document.body.classList.remove('tv-mode');
       document.getElementById('btnModoMobile').classList.remove('active');
       document.getElementById('btnModoTV').classList.remove('active');
       document.getElementById('btnModoAdmin').classList.remove('active');
 
       if (modoAtual === 'tv') {
-        // ---------------- MODOS TV ----------------
+        // ---------------- MODO TV ----------------
         document.body.classList.add('tv-mode');
         document.getElementById('btnModoTV').classList.add('active');
 
@@ -185,13 +210,13 @@
             </div>
             
             <div class="tv-header">
-              <div class="tv-escola-nome" id="tvEscolaNome">${nomeEscola}</div>
+              <div class="tv-escola-nome">${nomeEscola}</div>
               <div class="tv-relogio" id="relogio">00:00:00</div>
             </div>
             
             <div class="tv-display">
               <div class="tv-subtitulo">PRÓXIMA TURMA PARA O REFEITÓRIO:</div>
-              <div class="tv-turma-nome" id="tvTurma">Aguardando...</div>
+              <div class="tv-turma-nome" id="tvTurma">${turmaChamadaAtual}</div>
             </div>
 
             <div class="tv-rodape">
@@ -201,24 +226,10 @@
           </div>
         `;
 
-        // Relógio
         setInterval(() => {
           const r = document.getElementById('relogio');
           if (r) r.innerText = new Date().toLocaleTimeString('pt-BR');
         }, 1000);
-
-        // Atualização em Tempo Real na TV
-        let ultimaTurma = "";
-        db.ref('chamadaAtual').on('value', (snapshot) => {
-          const turma = snapshot.val() || "Aguardando...";
-          const el = document.getElementById('tvTurma');
-          if (el) el.innerText = turma;
-
-          if (turma !== ultimaTurma && turma !== "Aguardando...") {
-            emitirSinalEVoz(turma);
-            ultimaTurma = turma;
-          }
-        });
 
         db.ref('historico').limitToLast(5).on('value', (snapshot) => {
           const chips = document.getElementById('tvHistorico');
@@ -233,32 +244,32 @@
         });
 
       } else if (modoAtual === 'admin') {
-        // ---------------- MODO ADMIN (EDITAR TURMAS) ----------------
+        // ---------------- MODO ADMIN ----------------
         document.getElementById('btnModoAdmin').classList.add('active');
 
         let html = `
           <div class="container">
             <div class="card-box">
-              <h3>⚙️ Configurações Principais</h3>
+              <h3>⚙️ Configurações</h3>
               <br>
               <div class="form-group">
-                <label>Nome da Escola / Instituição:</label>
+                <label>Nome da Escola:</label>
                 <input type="text" class="form-input" id="inputEscola" value="${nomeEscola}">
               </div>
-              <button class="btn-add" onclick="salvarConfig()">💾 Salvar Nome da Escola</button>
+              <button class="btn-add" onclick="salvarConfig()">💾 Salvar Nome</button>
             </div>
 
             <div class="card-box">
               <h3>✏️ Gerenciar Turmas</h3>
               <br>
               <div class="form-group">
-                <label>Adicionar Nova Turma:</label>
+                <label>Nova Turma:</label>
                 <input type="text" class="form-input" id="novaTurmaNome" placeholder="Ex: 9º ANO B">
               </div>
-              <button class="btn-add" onclick="adicionarTurma()">➕ Adicionar Turma</button>
+              <button class="btn-add" onclick="adicionarTurma()">➕ Adicionar</button>
 
               <div class="section-title" style="margin-top:25px;">Turmas Cadastradas:</div>
-              <div id="listaTurmasGerenciar">
+              <div>
         `;
 
         turmasAtuais.forEach((t, idx) => {
@@ -278,12 +289,19 @@
         container.innerHTML = html;
 
       } else {
-        // ---------------- MODO CELULAR / PAINEL DE OPERAÇÃO ----------------
+        // ---------------- MODO CELULAR (PAINEL SINCRONIZADO) ----------------
         document.getElementById('btnModoMobile').classList.add('active');
 
         let html = `
           <div class="container">
-            <div class="section-title">Clique na turma para chamar na TV:</div>
+            
+            <!-- Banner que sincroniza em tempo real em todos os telemóveis -->
+            <div class="banner-chamada-global">
+              <div class="label">📢 Chamando Agora no Refeitório:</div>
+              <div class="valor" id="chamadaAtualMobile">${turmaChamadaAtual}</div>
+            </div>
+
+            <div class="section-title">Clique para chamar a turma:</div>
             <div class="grid-turmas">
         `;
 
@@ -320,7 +338,7 @@
       }
     }
 
-    // Ações do Operador
+    // Funções de Chamada
     window.chamarTurma = function(turma) {
       const hora = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
       db.ref('chamadaAtual').set(turma);
@@ -341,7 +359,6 @@
       db.ref('chamadaAtual').set("Chamada Cancelada");
     };
 
-    // Ações do Admin (Gerenciar Turmas)
     window.adicionarTurma = function() {
       const input = document.getElementById('novaTurmaNome');
       const nome = input.value.trim().toUpperCase();
@@ -349,12 +366,11 @@
         turmasAtuais.push(nome);
         db.ref('turmas').set(turmasAtuais);
         input.value = "";
-        alert("Turma " + nome + " adicionada com sucesso!");
       }
     };
 
     window.removerTurma = function(index) {
-      if (confirm(`Deseja mesmo remover a turma "${turmasAtuais[index]}"?`)) {
+      if (confirm(`Remover turma "${turmasAtuais[index]}"?`)) {
         turmasAtuais.splice(index, 1);
         db.ref('turmas').set(turmasAtuais);
       }
@@ -364,7 +380,7 @@
       const escola = document.getElementById('inputEscola').value.trim();
       if (escola) {
         db.ref('config/nomeEscola').set(escola);
-        alert("Nome da escola atualizado!");
+        alert("Nome guardado com sucesso!");
       }
     };
 
@@ -372,4 +388,5 @@
     renderizar();
   </script>
 </body>
+</html>
 </html>
