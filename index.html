@@ -3,37 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fila Inteligente Pro - Sincronizado</title>
+  <title>Fila Inteligente - Refeitório</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
     body { background-color: #f1f5f9; color: #1e293b; min-height: 100vh; }
     
-    /* Topo do App */
-    header { background: #0284c7; color: white; padding: 15px 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    /* Topo e Navegação */
+    header { background: #0284c7; color: white; padding: 15px 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     header h1 { font-size: 1.4rem; margin-bottom: 8px; font-weight: 800; }
     .nav-links { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
-    .nav-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .nav-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
     .nav-btn:hover { background: rgba(255,255,255,0.3); }
-    .nav-btn.active { background: white; color: #0284c7; }
+    .nav-btn.active { background: white; color: #0284c7; font-weight: 700; }
 
-    /* Cartão de Sincronização em Tempo Real (Visível em todos os telemóveis) */
-    .banner-chamada-global {
-      background: #10b981;
+    /* Status de Conexão */
+    .status-bar { background: #e2e8f0; text-align: center; font-size: 0.8rem; padding: 5px; color: #475569; font-weight: 600; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-right: 5px; }
+
+    /* Card de Chamada Global (Visível nos telemóveis) */
+    .banner-chamada {
+      background: linear-gradient(135deg, #10b981, #059669);
       color: white;
       text-align: center;
-      padding: 18px 10px;
+      padding: 20px 15px;
       border-radius: 16px;
       margin-bottom: 20px;
       box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-      animation: pulse 2s infinite;
     }
-    .banner-chamada-global .label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; font-weight: 700; }
-    .banner-chamada-global .valor { font-size: 2.2rem; font-weight: 800; margin-top: 4px; word-break: break-word; }
+    .banner-chamada .label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; font-weight: 700; }
+    .banner-chamada .valor { font-size: 2.3rem; font-weight: 800; margin-top: 4px; word-break: break-word; }
 
-    /* Estilo do Painel do Celular */
+    /* Layout do Celular */
     .container { max-width: 650px; margin: 20px auto; padding: 0 15px; }
-    .section-title { font-size: 1.1rem; color: #475569; margin: 15px 0 10px 0; border-left: 4px solid #0284c7; padding-left: 10px; font-weight: 700; }
+    .section-title { font-size: 1.05rem; color: #475569; margin: 15px 0 10px 0; border-left: 4px solid #0284c7; padding-left: 10px; font-weight: 700; }
     .grid-turmas { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
     .btn-turma { background: white; border: 2px solid #0284c7; color: #0284c7; font-size: 1rem; font-weight: 700; padding: 16px 10px; border-radius: 12px; cursor: pointer; transition: 0.15s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     .btn-turma:active { background: #0284c7; color: white; transform: scale(0.95); }
@@ -47,7 +50,7 @@
     .lista-historico { list-style: none; margin-top: 10px; }
     .lista-historico li { padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600; }
 
-    /* Painel Admin / Editar Turmas */
+    /* Painel Admin / Configurações */
     .form-group { margin-bottom: 15px; }
     .form-group label { display: block; font-size: 0.9rem; font-weight: 700; margin-bottom: 5px; color: #334155; }
     .form-input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; }
@@ -63,17 +66,13 @@
     .tv-relogio { font-size: 1.8rem; font-weight: 800; color: #f8fafc; background: #0f172a; padding: 6px 16px; border-radius: 10px; border: 1px solid #334155; }
     .tv-display { background: #161e2e; border: 4px solid #0284c7; border-radius: 28px; padding: 50px 20px; box-shadow: 0 0 40px rgba(2, 132, 199, 0.35); margin: 25px 0; }
     .tv-subtitulo { font-size: 1.6rem; color: #94a3b8; font-weight: 700; letter-spacing: 3px; }
-    .tv-turma-nome { font-size: 6rem; font-weight: 800; color: #4ade80; margin: 20px 0; text-shadow: 0 0 30px rgba(74, 222, 128, 0.5); word-break: break-word; min-height: 140px; }
+    .tv-turma-nome { font-size: 6.5rem; font-weight: 800; color: #4ade80; margin: 20px 0; text-shadow: 0 0 35px rgba(74, 222, 128, 0.5); word-break: break-word; min-height: 150px; }
     .tv-rodape { background: #161e2e; padding: 20px; border-radius: 18px; text-align: left; border: 1px solid #233044; }
     .tv-rodape h4 { color: #94a3b8; font-size: 0.9rem; margin-bottom: 12px; letter-spacing: 1px; }
     .tv-historico-chips { display: flex; gap: 10px; flex-wrap: wrap; }
     .chip { background: #233044; color: #e2e8f0; padding: 8px 18px; border-radius: 20px; font-size: 1.1rem; font-weight: 700; border: 1px solid #334155; }
     .audio-alert { background: #f59e0b; color: #000; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; margin-bottom: 15px; text-align: center; font-size: 1.05rem; }
   </style>
-
-  <!-- Firebase Realtime Database -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
@@ -86,25 +85,25 @@
     </div>
   </header>
 
+  <div class="status-bar">
+    <span class="status-dot"></span> Sincronização em Tempo Real Ativa (Canal: <strong id="lblCanal">escola-fila-2026</strong>)
+  </div>
+
   <div id="conteudoApp"></div>
 
   <script>
-    // Configuração do Firebase
-    const firebaseConfig = {
-      databaseURL: "https://fila-inteligente-demo-default-rtdb.firebaseio.com"
-    };
-    
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
+    // --- ESTADO DA APLICAÇÃO ---
+    let canalEscola = localStorage.getItem('canalEscola') || 'escola-fila-2026';
+    let nomeEscola = localStorage.getItem('nomeEscola') || 'MINHA ESCOLA';
+    let turmasAtuais = JSON.parse(localStorage.getItem('turmasAtuais')) || [
+      "1º ADM", "2º ADM", "3º ADM", 
+      "1º INFO", "2º INFO", "3º INFO", 
+      "6º ANO A", "7º ANO A", "8º ANO A"
+    ];
+    let chamadaAtual = "Aguardando...";
+    let historicoLocal = JSON.parse(localStorage.getItem('historicoLocal')) || [];
 
-    // Estado Local
-    let turmasAtuais = [];
-    let nomeEscola = "Minha Escola";
-    let turmaChamadaAtual = "Aguardando...";
-
-    // Verificar parâmetros da URL
+    // URL da URL query
     const params = new URLSearchParams(window.location.search);
     let modoAtual = params.get('modo') || 'mobile';
 
@@ -122,44 +121,86 @@
       renderizar();
     }
 
-    // Escutar Configurações da Escola
-    db.ref('config/nomeEscola').on('value', (snapshot) => {
-      if (snapshot.val()) nomeEscola = snapshot.val();
-    });
+    // --- CONEXÃO EM TEMPO REAL VIA EVENTSOURCE (ntfy.sh) ---
+    let eventSource = null;
 
-    // Escutar Turmas Cadastradas
-    db.ref('turmas').on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        turmasAtuais = Object.values(data);
-      } else {
-        turmasAtuais = ["1º ADM", "2º ADM", "3º ADM", "1º INFO", "2º INFO", "3º INFO", "6º ANO A", "7º ANO A", "8º ANO A"];
-        db.ref('turmas').set(turmasAtuais);
-      }
-      if (modoAtual !== 'tv') renderizar();
-    });
-
-    // ESCUTA GLOBAL: Atualiza TODOS os ecrãs/links ao mesmo tempo
-    let ultimaTurmaSom = "";
-    db.ref('chamadaAtual').on('value', (snapshot) => {
-      turmaChamadaAtual = snapshot.val() || "Aguardando...";
+    function conectarRede() {
+      if (eventSource) eventSource.close();
       
-      // Atualiza o painel da TV
-      const elTv = document.getElementById('tvTurma');
-      if (elTv) elTv.innerText = turmaChamadaAtual;
+      const lbl = document.getElementById('lblCanal');
+      if (lbl) lbl.innerText = canalEscola;
 
-      // Atualiza o painel do Telemóvel (Banner Superior)
-      const elMobile = document.getElementById('chamadaAtualMobile');
-      if (elMobile) elMobile.innerText = turmaChamadaAtual;
+      eventSource = new EventSource(`https://ntfy.sh/${canalEscola}/json`);
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const raw = JSON.parse(event.data);
+          if (raw.event === 'message' && raw.message) {
+            const payload = JSON.parse(raw.message);
+            processarMensagemRede(payload);
+          }
+        } catch(e) {
+          // Ignora mensagens normais não-JSON
+        }
+      };
 
-      // Se estiver no Modo TV, toca o som e fala o nome
-      if (modoAtual === 'tv' && turmaChamadaAtual !== ultimaTurmaSom && turmaChamadaAtual !== "Aguardando...") {
-        emitirSinalEVoz(turmaChamadaAtual);
-        ultimaTurmaSom = turmaChamadaAtual;
+      eventSource.onerror = () => {
+        console.log("Reconectando canal...");
+      };
+    }
+
+    // Enviar dados para todos os aparelhos
+    function transmitirRede(dados) {
+      fetch(`https://ntfy.sh/${canalEscola}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados)
+      }).catch(err => console.error("Erro ao transmitir:", err));
+    }
+
+    // Processar mensagens recebidas dos outros celulares/TVs
+    let ultimaTurmaSom = "";
+    function processarMensagemRede(payload) {
+      if (payload.tipo === 'CHAMADA') {
+        chamadaAtual = payload.turma;
+        
+        // Adicionar ao histórico se não for duplicado
+        const itemHist = `${payload.turma} (${payload.hora})`;
+        if (!historicoLocal.includes(itemHist) && payload.turma !== "Chamada Cancelada") {
+          historicoLocal.unshift(itemHist);
+          if (historicoLocal.length > 8) historicoLocal.pop();
+          localStorage.setItem('historicoLocal', JSON.stringify(historicoLocal));
+        }
+
+        // Atualizar Telas
+        const elTv = document.getElementById('tvTurma');
+        if (elTv) elTv.innerText = chamadaAtual;
+
+        const elMobile = document.getElementById('chamadaAtualMobile');
+        if (elMobile) elMobile.innerText = chamadaAtual;
+
+        // Tocar som e falar na TV
+        if (modoAtual === 'tv' && chamadaAtual !== ultimaTurmaSom && chamadaAtual !== "Aguardando...") {
+          emitirSinalEVoz(chamadaAtual);
+          ultimaTurmaSom = chamadaAtual;
+        }
+
+        atualizarListaHistorico();
+      } 
+      else if (payload.tipo === 'CONFIG_TURMAS') {
+        turmasAtuais = payload.turmas;
+        localStorage.setItem('turmasAtuais', JSON.stringify(turmasAtuais));
+        if (modoAtual !== 'tv') renderizar();
       }
-    });
+      else if (payload.tipo === 'CONFIG_ESCOLA') {
+        nomeEscola = payload.nome;
+        localStorage.setItem('nomeEscola', nomeEscola);
+        const el = document.getElementById('tvEscolaNome');
+        if (el) el.innerText = nomeEscola;
+      }
+    }
 
-    // Som e Voz da TV
+    // --- SINAL SONORO E VOZ EM PORTUGUÊS ---
     function emitirSinalEVoz(texto) {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -185,11 +226,11 @@
           }
         }, 700);
       } catch(e) {
-        console.log("Som aguardando clique.");
+        console.log("Clique necessário para áudio.");
       }
     }
 
-    // Renderizar Interface
+    // --- DESENHAR A INTERFACE (RENDER) ---
     function renderizar() {
       const container = document.getElementById('conteudoApp');
       
@@ -210,13 +251,13 @@
             </div>
             
             <div class="tv-header">
-              <div class="tv-escola-nome">${nomeEscola}</div>
+              <div class="tv-escola-nome" id="tvEscolaNome">${nomeEscola}</div>
               <div class="tv-relogio" id="relogio">00:00:00</div>
             </div>
             
             <div class="tv-display">
               <div class="tv-subtitulo">PRÓXIMA TURMA PARA O REFEITÓRIO:</div>
-              <div class="tv-turma-nome" id="tvTurma">${turmaChamadaAtual}</div>
+              <div class="tv-turma-nome" id="tvTurma">${chamadaAtual}</div>
             </div>
 
             <div class="tv-rodape">
@@ -231,32 +272,34 @@
           if (r) r.innerText = new Date().toLocaleTimeString('pt-BR');
         }, 1000);
 
-        db.ref('historico').limitToLast(5).on('value', (snapshot) => {
-          const chips = document.getElementById('tvHistorico');
-          if (!chips) return;
-          chips.innerHTML = "";
-          snapshot.forEach(child => {
-            const chip = document.createElement('span');
-            chip.className = 'chip';
-            chip.innerText = child.val();
-            chips.insertBefore(chip, chips.firstChild);
-          });
-        });
+        atualizarListaHistorico();
 
       } else if (modoAtual === 'admin') {
-        // ---------------- MODO ADMIN ----------------
+        // ---------------- MODO ADMIN / CONFIGURAÇÕES ----------------
         document.getElementById('btnModoAdmin').classList.add('active');
 
         let html = `
           <div class="container">
             <div class="card-box">
-              <h3>⚙️ Configurações</h3>
+              <h3>📡 Canal de Sincronização da Escola</h3>
+              <p style="font-size:0.85rem; color:#64748b; margin:6px 0 12px 0;">
+                Para conectar vários telemóveis e TVs, certifique-se de que todos estão a usar o mesmo código de canal abaixo:
+              </p>
+              <div class="form-group">
+                <label>Código do Canal:</label>
+                <input type="text" class="form-input" id="inputCanal" value="${canalEscola}">
+              </div>
+              <button class="btn-add" onclick="salvarCanal()">🔗 Conectar a Este Canal</button>
+            </div>
+
+            <div class="card-box">
+              <h3>🏫 Nome da Instituição</h3>
               <br>
               <div class="form-group">
                 <label>Nome da Escola:</label>
                 <input type="text" class="form-input" id="inputEscola" value="${nomeEscola}">
               </div>
-              <button class="btn-add" onclick="salvarConfig()">💾 Salvar Nome</button>
+              <button class="btn-add" onclick="salvarEscola()">💾 Salvar Nome</button>
             </div>
 
             <div class="card-box">
@@ -266,7 +309,7 @@
                 <label>Nova Turma:</label>
                 <input type="text" class="form-input" id="novaTurmaNome" placeholder="Ex: 9º ANO B">
               </div>
-              <button class="btn-add" onclick="adicionarTurma()">➕ Adicionar</button>
+              <button class="btn-add" onclick="adicionarTurma()">➕ Adicionar Turma</button>
 
               <div class="section-title" style="margin-top:25px;">Turmas Cadastradas:</div>
               <div>
@@ -289,16 +332,15 @@
         container.innerHTML = html;
 
       } else {
-        // ---------------- MODO CELULAR (PAINEL SINCRONIZADO) ----------------
+        // ---------------- MODO CELULAR ----------------
         document.getElementById('btnModoMobile').classList.add('active');
 
         let html = `
           <div class="container">
             
-            <!-- Banner que sincroniza em tempo real em todos os telemóveis -->
-            <div class="banner-chamada-global">
+            <div class="banner-chamada">
               <div class="label">📢 Chamando Agora no Refeitório:</div>
-              <div class="valor" id="chamadaAtualMobile">${turmaChamadaAtual}</div>
+              <div class="valor" id="chamadaAtualMobile">${chamadaAtual}</div>
             </div>
 
             <div class="section-title">Clique para chamar a turma:</div>
@@ -324,65 +366,105 @@
         `;
 
         container.innerHTML = html;
+        atualizarListaHistorico();
+      }
+    }
 
-        db.ref('historico').limitToLast(6).on('value', (snapshot) => {
-          const lista = document.getElementById('listaHistorico');
-          if (!lista) return;
-          lista.innerHTML = "";
-          snapshot.forEach(child => {
-            const li = document.createElement('li');
-            li.innerHTML = `<span>${child.val()}</span>`;
-            lista.insertBefore(li, lista.firstChild);
-          });
+    // --- ATUALIZAR LISTAS DE HISTÓRICO ---
+    function atualizarListaHistorico() {
+      if (modoAtual === 'tv') {
+        const chips = document.getElementById('tvHistorico');
+        if (!chips) return;
+        chips.innerHTML = "";
+        historicoLocal.slice(0, 5).forEach(item => {
+          const chip = document.createElement('span');
+          chip.className = 'chip';
+          chip.innerText = item;
+          chips.appendChild(chip);
+        });
+      } else if (modoAtual === 'mobile') {
+        const lista = document.getElementById('listaHistorico');
+        if (!lista) return;
+        lista.innerHTML = "";
+        historicoLocal.slice(0, 6).forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span>${item}</span>`;
+          lista.appendChild(li);
         });
       }
     }
 
-    // Funções de Chamada
+    // --- AÇÕES DO PAINEL ---
     window.chamarTurma = function(turma) {
       const hora = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-      db.ref('chamadaAtual').set(turma);
-      db.ref('historico').push(`${turma} (${hora})`);
-    };
-
-    window.repetirChamada = function() {
-      db.ref('chamadaAtual').once('value', (snapshot) => {
-        const atual = snapshot.val();
-        if (atual) {
-          db.ref('chamadaAtual').set(atual + " ");
-          setTimeout(() => db.ref('chamadaAtual').set(atual), 100);
-        }
+      transmitirRede({
+        tipo: 'CHAMADA',
+        turma: turma,
+        hora: hora
       });
     };
 
-    window.cancelarChamada = function() {
-      db.ref('chamadaAtual').set("Chamada Cancelada");
+    window.repetirChamada = function() {
+      if (chamadaAtual && chamadaAtual !== "Aguardando...") {
+        window.chamarTurma(chamadaAtual);
+      }
     };
 
+    window.cancelarChamada = function() {
+      const hora = new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+      transmitirRede({
+        tipo: 'CHAMADA',
+        turma: "Chamada Cancelada",
+        hora: hora
+      });
+    };
+
+    // --- AÇÕES DE CONFIGURAÇÃO ---
     window.adicionarTurma = function() {
       const input = document.getElementById('novaTurmaNome');
       const nome = input.value.trim().toUpperCase();
       if (nome) {
         turmasAtuais.push(nome);
-        db.ref('turmas').set(turmasAtuais);
+        localStorage.setItem('turmasAtuais', JSON.stringify(turmasAtuais));
+        transmitirRede({ tipo: 'CONFIG_TURMAS', turmas: turmasAtuais });
         input.value = "";
+        renderizar();
       }
     };
 
     window.removerTurma = function(index) {
-      if (confirm(`Remover turma "${turmasAtuais[index]}"?`)) {
+      if (confirm(`Excluir turma "${turmasAtuais[index]}"?`)) {
         turmasAtuais.splice(index, 1);
-        db.ref('turmas').set(turmasAtuais);
+        localStorage.setItem('turmasAtuais', JSON.stringify(turmasAtuais));
+        transmitirRede({ tipo: 'CONFIG_TURMAS', turmas: turmasAtuais });
+        renderizar();
       }
     };
 
-    window.salvarConfig = function() {
-      const escola = document.getElementById('inputEscola').value.trim();
-      if (escola) {
-        db.ref('config/nomeEscola').set(escola);
-        alert("Nome guardado com sucesso!");
+    window.salvarEscola = function() {
+      const input = document.getElementById('inputEscola');
+      nomeEscola = input.value.trim();
+      localStorage.setItem('nomeEscola', nomeEscola);
+      transmitirRede({ tipo: 'CONFIG_ESCOLA', nome: nomeEscola });
+      alert("Nome guardado com sucesso!");
+    };
+
+    window.salvarCanal = function() {
+      const input = document.getElementById('inputCanal');
+      canalEscola = input.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+      if (canalEscola) {
+        localStorage.setItem('canalEscola', canalEscola);
+        conectarRede();
+        alert("Conectado ao canal: " + canalEscola);
       }
     };
+
+    // INICIALIZAÇÃO
+    conectarRede();
+    renderizar();
+  </script>
+</body>
+</html>
 
     // Inicialização
     renderizar();
