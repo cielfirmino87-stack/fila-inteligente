@@ -70,96 +70,126 @@
   <div id="app"></div>
 
   <script>
-    const canal = "fila-inteligente-refeitorio";
-    let turmaAtual = "Aguardando...";
-    let historico = [];
+    // Código adaptado em JavaScript nativo (ES5) para compatibilidade total com Smart TVs antigas
+    var canal = "fila-inteligente-refeitorio";
+    var turmaAtual = "Aguardando...";
+    var historico = [];
 
-    let turmas = JSON.parse(localStorage.getItem('filainteligente_turmas')) || [
+    var turmasPadrao = [
       "1º ADM", "2º ADM", "3º ADM", 
       "1º INFO", "2º INFO", "3º INFO", 
       "6º ANO A", "7º ANO A", "8º ANO A"
     ];
 
-    const params = new URLSearchParams(window.location.search);
-    let modo = params.get('modo') || 'mobile';
+    var turmas = turmasPadrao;
+    try {
+      var salvas = localStorage.getItem('filainteligente_turmas');
+      if (salvas) { turmas = JSON.parse(salvas); }
+    } catch(e) {}
+
+    function getParam(param) {
+      var match = RegExp('[?&]' + param + '=([^&]*)').exec(window.location.search);
+      return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+    }
+
+    var modo = getParam('modo') || 'mobile';
 
     function mudarModo(m) {
       modo = m;
-      const url = new URL(window.location);
-      if (m === 'tv') url.searchParams.set('modo', 'tv');
-      else if (m === 'admin') url.searchParams.set('modo', 'admin');
-      else url.searchParams.delete('modo');
-      window.history.pushState({}, '', url);
+      if (window.history && window.history.pushState) {
+        var base = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        if (m === 'tv') { base += '?modo=tv'; }
+        else if (m === 'admin') { base += '?modo=admin'; }
+        window.history.pushState({}, '', base);
+      }
       render();
     }
 
-    const bc = new BroadcastChannel('filainteligente_channel_local');
-    bc.onmessage = (e) => processarSinal(e.data);
-
-    // 1. Conexão Primária (SSE)
-    let es = null;
-    function conectar() {
-      if (es) es.close();
+    var bc = null;
+    if (window.BroadcastChannel) {
       try {
-        es = new EventSource(`https://ntfy.sh/${canal}/sse`);
-        es.onmessage = (e) => {
-          try {
-            const data = JSON.parse(e.data);
-            if (data.event === 'message' && data.message) {
-              processarSinal(data.message);
-            }
-          } catch(err) {}
-        };
+        bc = new BroadcastChannel('filainteligente_channel_local');
+        bc.onmessage = function(e) { processarSinal(e.data); };
       } catch(e) {}
     }
 
-    // 2. Conexão Secundária (Polling a cada 2s para Smart TVs)
-    setInterval(() => {
-      fetch(`https://ntfy.sh/${canal}/json?poll=1&since=10s`)
-        .then(res => res.text())
-        .then(text => {
-          const lines = text.trim().split("\n");
-          lines.forEach(line => {
+    // Conexão SSE
+    var es = null;
+    function conectar() {
+      if (es) { try { es.close(); } catch(e){} }
+      if (window.EventSource) {
+        try {
+          es = new EventSource('https://ntfy.sh/' + canal + '/sse');
+          es.onmessage = function(e) {
             try {
-              const data = JSON.parse(line);
-              if (data.message) processarSinal(data.message);
-            } catch(e) {}
-          });
-        }).catch(err => {});
+              var data = JSON.parse(e.data);
+              if (data.event === 'message' && data.message) {
+                processarSinal(data.message);
+              }
+            } catch(err) {}
+          };
+        } catch(e) {}
+      }
+    }
+
+    // Polling HTTP (usando XMLHttpRequest legado para a TV antiga)
+    setInterval(function() {
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://ntfy.sh/' + canal + '/json?poll=1&since=10s', true);
+        xhr.onload = function() {
+          if (xhr.status >= 200 && xhr.status < 400) {
+            var lines = xhr.responseText.trim().split("\n");
+            for (var i = 0; i < lines.length; i++) {
+              if (lines[i]) {
+                try {
+                  var data = JSON.parse(lines[i]);
+                  if (data.message) { processarSinal(data.message); }
+                } catch(e) {}
+              }
+            }
+          }
+        };
+        xhr.send();
+      } catch(err) {}
     }, 2000);
 
     function enviarRede(texto) {
       processarSinal(texto);
-      bc.postMessage(texto);
-      fetch(`https://ntfy.sh/${canal}`, {
-        method: 'POST',
-        body: texto
-      }).catch(err => console.error(err));
+      if (bc) { try { bc.postMessage(texto); } catch(e){} }
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://ntfy.sh/' + canal, true);
+        xhr.send(texto);
+      } catch(e) {}
     }
 
     function processarSinal(texto) {
-      if (texto.startsWith("CFG_TURMAS:")) {
-        const listaStr = texto.replace("CFG_TURMAS:", "");
+      if (texto.indexOf("CFG_TURMAS:") === 0) {
+        var listaStr = texto.replace("CFG_TURMAS:", "");
         turmas = listaStr.split("|");
-        localStorage.setItem('filainteligente_turmas', JSON.stringify(turmas));
+        try { localStorage.setItem('filainteligente_turmas', JSON.stringify(turmas)); } catch(e){}
         if (modo !== 'tv') render();
         return;
       }
 
-      if (turmaAtual === texto) return; // Evita repetir sem necessidade
+      if (turmaAtual === texto) return;
 
       turmaAtual = texto;
-      
+
       if (texto !== "Aguardando..." && texto !== "Chamada Cancelada") {
-        const hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-        historico.unshift(`${texto} (${hora})`);
+        var agora = new Date();
+        var hrs = ("0" + agora.getHours()).slice(-2);
+        var mins = ("0" + agora.getMinutes()).slice(-2);
+        var hora = hrs + ":" + mins;
+        historico.unshift(texto + " (" + hora + ")");
         if (historico.length > 5) historico.pop();
       }
 
-      const elTv = document.getElementById('tvTurma');
+      var elTv = document.getElementById('tvTurma');
       if (elTv) elTv.innerText = turmaAtual;
 
-      const elMob = document.getElementById('mobTurma');
+      var elMob = document.getElementById('mobTurma');
       if (elMob) elMob.innerText = turmaAtual;
 
       if (modo === 'tv' && texto !== "Aguardando...") {
@@ -171,20 +201,23 @@
 
     function falarNaTV(texto) {
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.4);
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          var ctx = new AudioCtx();
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(0);
+          osc.stop(ctx.currentTime + 0.4);
+        }
 
-        setTimeout(() => {
-          if ('speechSynthesis' in window && !texto.includes('Cancelada')) {
+        setTimeout(function() {
+          if ('speechSynthesis' in window && texto && texto.indexOf('Cancelada') === -1) {
             window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(`Atenção, turma ${texto}, dirigir-se ao refeitório.`);
+            var msg = new SpeechSynthesisUtterance("Atenção, turma " + texto + ", dirigir-se ao refeitório.");
             msg.lang = 'pt-BR';
             window.speechSynthesis.speak(msg);
           }
@@ -193,99 +226,97 @@
     }
 
     function render() {
-      const container = document.getElementById('app');
-      document.body.classList.remove('tv-mode');
-      document.getElementById('btnMobile').classList.remove('active');
-      document.getElementById('btnTV').classList.remove('active');
-      document.getElementById('btnAdmin').classList.remove('active');
+      var container = document.getElementById('app');
+      document.body.className = '';
+      document.getElementById('btnMobile').className = 'nav-btn';
+      document.getElementById('btnTV').className = 'nav-btn';
+      document.getElementById('btnAdmin').className = 'nav-btn';
 
       if (modo === 'tv') {
-        document.body.classList.add('tv-mode');
-        document.getElementById('btnTV').classList.add('active');
+        document.body.className = 'tv-mode';
+        document.getElementById('btnTV').className = 'nav-btn active';
 
-        container.innerHTML = `
-          <div class="tv-wrapper">
-            <div class="audio-alert" onclick="this.style.display='none'; falarNaTV('');">
-              🔊 CLIQUE AQUI UMA VEZ NA TV PARA ATIVAR O SOM E VOZ
-            </div>
-            <div class="tv-header">
-              <div class="tv-titulo">🍽️ FILA INTELIGENTE</div>
-              <div id="relogio">00:00:00</div>
-            </div>
-            <div class="tv-display">
-              <div style="color:#94a3b8; font-weight:700;">PRÓXIMA TURMA PARA O REFEITÓRIO:</div>
-              <div class="tv-turma-nome" id="tvTurma">${turmaAtual}</div>
-            </div>
-          </div>
-        `;
+        container.innerHTML = 
+          '<div class="tv-wrapper">' +
+            '<div class="audio-alert" onclick="this.style.display=\'none\'; falarNaTV(\'\');">' +
+              '🔊 CLIQUE AQUI UMA VEZ NA TV PARA ATIVAR O SOM E VOZ' +
+            '</div>' +
+            '<div class="tv-header">' +
+              '<div class="tv-titulo">🍽️ FILA INTELIGENTE</div>' +
+              '<div id="relogio">00:00:00</div>' +
+            '</div>' +
+            '<div class="tv-display">' +
+              '<div style="color:#94a3b8; font-weight:700;">PRÓXIMA TURMA PARA O REFEITÓRIO:</div>' +
+              '<div class="tv-turma-nome" id="tvTurma">' + turmaAtual + '</div>' +
+            '</div>' +
+          '</div>';
 
-        setInterval(() => {
-          const r = document.getElementById('relogio');
-          if (r) r.innerText = new Date().toLocaleTimeString('pt-BR');
+        setInterval(function() {
+          var r = document.getElementById('relogio');
+          if (r) {
+            var d = new Date();
+            var h = ("0" + d.getHours()).slice(-2);
+            var m = ("0" + d.getMinutes()).slice(-2);
+            var s = ("0" + d.getSeconds()).slice(-2);
+            r.innerText = h + ":" + m + ":" + s;
+          }
         }, 1000);
 
       } else if (modo === 'admin') {
-        document.getElementById('btnAdmin').classList.add('active');
+        document.getElementById('btnAdmin').className = 'nav-btn active';
 
-        let html = `
-          <div class="container">
-            <div class="card-box">
-              <h3 style="margin-bottom:12px;">✏️ Gerenciar Turmas do Sistema</h3>
-              <div class="form-group">
-                <input type="text" id="inputNovaTurma" class="input-turma" placeholder="Ex: 9º ANO B">
-                <button class="btn-add" onclick="adicionarTurma()">➕ Adicionar</button>
-              </div>
+        var html = 
+          '<div class="container">' +
+            '<div class="card-box">' +
+              '<h3 style="margin-bottom:12px;">✏️ Gerenciar Turmas do Sistema</h3>' +
+              '<div class="form-group">' +
+                '<input type="text" id="inputNovaTurma" class="input-turma" placeholder="Ex: 9º ANO B">' +
+                '<button class="btn-add" onclick="adicionarTurma()">➕ Adicionar</button>' +
+              '</div>' +
+              '<ul class="lista-edicao">';
 
-              <ul class="lista-edicao">
-        `;
+        for (var i = 0; i < turmas.length; i++) {
+          html += 
+            '<li class="item-edicao">' +
+              '<span>' + turmas[i] + '</span>' +
+              '<button class="btn-del" onclick="removerTurma(' + i + ')">🗑️ Excluir</button>' +
+            '</li>';
+        }
 
-        turmas.forEach((t, index) => {
-          html += `
-            <li class="item-edicao">
-              <span>${t}</span>
-              <button class="btn-del" onclick="removerTurma(${index})">🗑️ Excluir</button>
-            </li>
-          `;
-        });
-
-        html += `
-              </ul>
-            </div>
-          </div>
-        `;
+        html += 
+              '</ul>' +
+            '</div>' +
+          '</div>';
 
         container.innerHTML = html;
 
       } else {
-        document.getElementById('btnMobile').classList.add('active');
+        document.getElementById('btnMobile').className = 'nav-btn active';
 
-        let html = `
-          <div class="container">
-            <div class="banner-chamada">
-              <div style="font-size:0.85rem; text-transform:uppercase; font-weight:700;">Chamando na TV:</div>
-              <div class="valor" id="mobTurma">${turmaAtual}</div>
-            </div>
+        var html = 
+          '<div class="container">' +
+            '<div class="banner-chamada">' +
+              '<div style="font-size:0.85rem; text-transform:uppercase; font-weight:700;">Chamando na TV:</div>' +
+              '<div class="valor" id="mobTurma">' + turmaAtual + '</div>' +
+            '</div>' +
+            '<div style="margin-bottom:10px; font-weight:700; color:#475569;">Clique para chamar:</div>' +
+            '<div class="grid-turmas">';
 
-            <div style="margin-bottom:10px; font-weight:700; color:#475569;">Clique para chamar:</div>
-            <div class="grid-turmas">
-        `;
+        for (var j = 0; j < turmas.length; j++) {
+          var t = turmas[j];
+          html += '<button class="btn-turma" onclick="enviarRede(\'' + t + '\')">' + t + '</button>';
+        }
 
-        turmas.forEach(t => {
-          html += `<button class="btn-turma" onclick="enviarRede('${t}')">${t}</button>`;
-        });
-
-        html += `
-            </div>
-            <div class="acoes-rapidas">
-              <button class="btn-acao btn-cancelar" onclick="enviarRede('Chamada Cancelada')">❌ Cancelar Chamada</button>
-            </div>
-
-            <div class="card-box">
-              <h3>📋 Últimas Chamadas</h3>
-              <ul class="lista-historico" id="listaHist"></ul>
-            </div>
-          </div>
-        `;
+        html += 
+            '</div>' +
+            '<div class="acoes-rapidas">' +
+              '<button class="btn-acao btn-cancelar" onclick="enviarRede(\'Chamada Cancelada\')">❌ Cancelar Chamada</button>' +
+            '</div>' +
+            '<div class="card-box">' +
+              '<h3>📋 Últimas Chamadas</h3>' +
+              '<ul class="lista-historico" id="listaHist"></ul>' +
+            '</div>' +
+          '</div>';
 
         container.innerHTML = html;
         atualizarHistoricoUI();
@@ -293,8 +324,8 @@
     }
 
     window.adicionarTurma = function() {
-      const input = document.getElementById('inputNovaTurma');
-      const nome = input.value.trim().toUpperCase();
+      var input = document.getElementById('inputNovaTurma');
+      var nome = input.value.replace(/^\s+|\s+$/g, '').toUpperCase();
       if (nome) {
         turmas.push(nome);
         salvarESincronizarTurmas();
@@ -310,19 +341,19 @@
     };
 
     function salvarESincronizarTurmas() {
-      localStorage.setItem('filainteligente_turmas', JSON.stringify(turmas));
+      try { localStorage.setItem('filainteligente_turmas', JSON.stringify(turmas)); } catch(e){}
       enviarRede("CFG_TURMAS:" + turmas.join("|"));
     }
 
     function atualizarHistoricoUI() {
-      const el = document.getElementById('listaHist');
+      var el = document.getElementById('listaHist');
       if (!el) return;
       el.innerHTML = "";
-      historico.forEach(item => {
-        const li = document.createElement('li');
-        li.innerText = item;
+      for (var k = 0; k < historico.length; k++) {
+        var li = document.createElement('li');
+        li.innerText = historico[k];
         el.appendChild(li);
-      });
+      }
     }
 
     conectar();
