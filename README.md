@@ -4,73 +4,75 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fila Inteligente - Refeitório</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body { background-color: #f1f5f9; color: #1e293b; min-height: 100vh; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
+    body { background-color: #f1f5f9; color: #1e293b; }
     
-    header { background: linear-gradient(135deg, #0284c7, #0f766e); color: white; padding: 15px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-    header h1 { font-size: 1.5rem; margin-bottom: 8px; font-weight: 800; letter-spacing: 0.5px; }
-    .nav-links { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
-    .nav-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
-    .nav-btn.active { background: white; color: #0284c7; font-weight: 800; }
+    header { background-color: #0284c7; color: #ffffff; padding: 15px; text-align: center; }
+    header h1 { font-size: 24px; margin-bottom: 10px; font-weight: bold; }
+    .nav-links { text-align: center; }
+    .nav-btn { background-color: #0369a1; color: #ffffff; border: 1px solid #38bdf8; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; margin: 3px; }
+    .nav-btn.active { background-color: #ffffff; color: #0284c7; }
 
-    .status-bar { background: #0f172a; color: #38bdf8; text-align: center; font-size: 0.8rem; padding: 6px; font-weight: 600; }
+    .status-bar { background-color: #0f172a; color: #38bdf8; text-align: center; font-size: 13px; padding: 6px; font-weight: bold; }
 
-    /* Estilo Telemovel */
+    /* Estilo Celular */
     .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
-    .banner-chamada { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; text-align: center; padding: 18px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(2,132,199,0.3); }
-    .banner-chamada .valor { font-size: 2.2rem; font-weight: 800; color: #facc15; margin-top: 4px; word-break: break-word; }
+    .banner-chamada { background-color: #0284c7; color: #ffffff; text-align: center; padding: 18px; border-radius: 14px; margin-bottom: 20px; }
+    .banner-chamada .valor { font-size: 34px; font-weight: bold; color: #facc15; margin-top: 5px; }
 
-    .grid-turmas { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-    .btn-turma { background: white; border: 2px solid #0284c7; color: #0284c7; font-size: 1rem; font-weight: 700; padding: 15px 8px; border-radius: 12px; cursor: pointer; transition: 0.15s; }
-    .btn-turma:active { background: #0284c7; color: white; transform: scale(0.95); }
+    .grid-turmas { text-align: center; }
+    .btn-turma { background-color: #ffffff; border: 2px solid #0284c7; color: #0284c7; font-size: 16px; font-weight: bold; padding: 15px 10px; border-radius: 10px; cursor: pointer; width: 30%; margin: 1.5%; display: inline-block; }
+    .btn-turma:active { background-color: #0284c7; color: #ffffff; }
 
-    .acoes-rapidas { display: flex; gap: 10px; margin-top: 15px; }
-    .btn-acao { flex: 1; border: none; padding: 12px; border-radius: 10px; font-weight: 700; color: white; cursor: pointer; font-size: 0.9rem; }
-    .btn-cancelar { background: #ef4444; }
+    .acoes-rapidas { margin-top: 15px; text-align: center; }
+    .btn-cancelar { background-color: #ef4444; color: #ffffff; border: none; padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; width: 100%; }
 
-    .card-box { background: white; border-radius: 14px; padding: 16px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .card-box { background-color: #ffffff; border-radius: 12px; padding: 16px; margin-top: 20px; border: 1px solid #cbd5e1; }
     .lista-historico { list-style: none; margin-top: 8px; }
-    .lista-historico li { padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-weight: 600; font-size: 0.9rem; }
+    .lista-historico li { padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; font-size: 15px; }
 
     /* Estilo Edicao */
-    .form-group { display: flex; gap: 8px; margin-bottom: 15px; }
-    .input-turma { flex: 1; padding: 10px 14px; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 0.95rem; font-weight: 600; }
-    .btn-add { background: #10b981; color: white; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    .form-group { margin-bottom: 15px; }
+    .input-turma { width: 68%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: bold; }
+    .btn-add { width: 29%; background-color: #10b981; color: #ffffff; border: none; padding: 12px 8px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
     .lista-edicao { list-style: none; }
-    .item-edicao { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8fafc; border-radius: 8px; margin-bottom: 6px; border: 1px solid #e2e8f0; font-weight: 700; }
-    .btn-del { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 700; }
+    .item-edicao { padding: 10px; background-color: #f8fafc; border-radius: 8px; margin-bottom: 8px; border: 1px solid #cbd5e1; font-weight: bold; overflow: hidden; }
+    .btn-del { float: right; background-color: #ef4444; color: #ffffff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
 
-    /* Estilo TV */
-    body.tv-mode { background: #090d16; color: white; }
-    .tv-wrapper { display: flex; flex-direction: column; justify-content: space-between; min-height: 85vh; text-align: center; padding: 20px; max-width: 1000px; margin: 0 auto; }
-    .tv-header { display: flex; justify-content: space-between; align-items: center; background: #161e2e; padding: 15px 25px; border-radius: 16px; border: 1px solid #233044; }
-    .tv-titulo { font-size: 1.5rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; }
-    .tv-display { background: #161e2e; border: 4px solid #0284c7; border-radius: 24px; padding: 40px 20px; margin: 20px 0; box-shadow: 0 0 35px rgba(2,132,199,0.35); }
-    .tv-turma-nome { font-size: 5.5rem; font-weight: 800; color: #4ade80; margin: 15px 0; min-height: 130px; word-break: break-word; }
-    .audio-alert { background: #f59e0b; color: #000; padding: 12px; border-radius: 10px; font-weight: 800; cursor: pointer; margin-bottom: 15px; }
+    /* Estilo TV Clássico (Compatível com TVs antigas) */
+    body.tv-mode { background-color: #090d16; color: #ffffff; }
+    .tv-wrapper { width: 94%; max-width: 1200px; margin: 20px auto; text-align: center; }
+    .audio-alert { background-color: #f59e0b; color: #000000; padding: 16px; border-radius: 10px; font-size: 20px; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
+    .tv-header { background-color: #161e2e; padding: 18px 25px; border-radius: 14px; border: 2px solid #233044; margin-bottom: 25px; overflow: hidden; }
+    .tv-titulo { float: left; font-size: 26px; font-weight: bold; color: #38bdf8; }
+    .tv-direita { float: right; }
+    .tv-relogio { font-size: 26px; font-weight: bold; color: #ffffff; display: inline-block; margin-right: 15px; }
+    .btn-sair-tv { background-color: #334155; color: #cbd5e1; border: 1px solid #475569; padding: 6px 12px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .tv-display { background-color: #161e2e; border: 6px solid #0284c7; border-radius: 24px; padding: 60px 20px; text-align: center; }
+    .tv-subtitulo { color: #cbd5e1; font-size: 26px; font-weight: bold; margin-bottom: 20px; letter-spacing: 1px; }
+    .tv-turma-nome { font-size: 110px; font-weight: bold; color: #4ade80; line-height: 1.2; word-wrap: break-word; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>🍽️ Fila Inteligente</h1>
-    <div class="nav-links">
-      <button class="nav-btn" id="btnMobile" onclick="mudarModo('mobile')">📱 Celular</button>
-      <button class="nav-btn" id="btnTV" onclick="mudarModo('tv')">📺 TV</button>
-      <button class="nav-btn" id="btnAdmin" onclick="mudarModo('admin')">✏️ Editar Turmas</button>
+  <div id="topHeader">
+    <header>
+      <h1>🍽️ Fila Inteligente</h1>
+      <div class="nav-links">
+        <button class="nav-btn" id="btnMobile" onclick="mudarModo('mobile')">📱 Celular</button>
+        <button class="nav-btn" id="btnTV" onclick="mudarModo('tv')">📺 TV</button>
+        <button class="nav-btn" id="btnAdmin" onclick="mudarModo('admin')">✏️ Editar Turmas</button>
+      </div>
+    </header>
+    <div class="status-bar">
+      Conectado: <strong id="txtCanal">fila-inteligente-refeitorio</strong>
     </div>
-  </header>
-
-  <div class="status-bar">
-    Conectado: <strong id="txtCanal">fila-inteligente-refeitorio</strong>
   </div>
 
   <div id="app"></div>
 
   <script>
-    // Código adaptado em JavaScript nativo (ES5) para compatibilidade total com Smart TVs antigas
     var canal = "fila-inteligente-refeitorio";
     var turmaAtual = "Aguardando...";
     var historico = [];
@@ -113,7 +115,6 @@
       } catch(e) {}
     }
 
-    // Conexão SSE
     var es = null;
     function conectar() {
       if (es) { try { es.close(); } catch(e){} }
@@ -132,7 +133,6 @@
       }
     }
 
-    // Polling HTTP (usando XMLHttpRequest legado para a TV antiga)
     setInterval(function() {
       try {
         var xhr = new XMLHttpRequest();
@@ -200,6 +200,18 @@
     }
 
     function falarNaTV(texto) {
+      // Efeito visual (pisca a tela para chamar atenção no refeitório)
+      var box = document.getElementById('tvDisplayBox');
+      var txt = document.getElementById('tvTurma');
+      if (box && txt && texto) {
+        box.style.backgroundColor = '#facc15';
+        txt.style.color = '#000000';
+        setTimeout(function() {
+          box.style.backgroundColor = '#161e2e';
+          txt.style.color = '#4ade80';
+        }, 1500);
+      }
+
       try {
         var AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (AudioCtx) {
@@ -227,6 +239,7 @@
 
     function render() {
       var container = document.getElementById('app');
+      var topHeader = document.getElementById('topHeader');
       document.body.className = '';
       document.getElementById('btnMobile').className = 'nav-btn';
       document.getElementById('btnTV').className = 'nav-btn';
@@ -234,7 +247,9 @@
 
       if (modo === 'tv') {
         document.body.className = 'tv-mode';
-        document.getElementById('btnTV').className = 'nav-btn active';
+        document.body.style.backgroundColor = '#090d16';
+        document.body.style.color = '#ffffff';
+        if (topHeader) topHeader.style.display = 'none';
 
         container.innerHTML = 
           '<div class="tv-wrapper">' +
@@ -243,10 +258,13 @@
             '</div>' +
             '<div class="tv-header">' +
               '<div class="tv-titulo">🍽️ FILA INTELIGENTE</div>' +
-              '<div id="relogio">00:00:00</div>' +
+              '<div class="tv-direita">' +
+                '<span class="tv-relogio" id="relogio">00:00:00</span>' +
+                '<button class="btn-sair-tv" onclick="mudarModo(\'mobile\')">Sair TV</button>' +
+              '</div>' +
             '</div>' +
-            '<div class="tv-display">' +
-              '<div style="color:#94a3b8; font-weight:700;">PRÓXIMA TURMA PARA O REFEITÓRIO:</div>' +
+            '<div class="tv-display" id="tvDisplayBox">' +
+              '<div class="tv-subtitulo">PRÓXIMA TURMA PARA O REFEITÓRIO:</div>' +
               '<div class="tv-turma-nome" id="tvTurma">' + turmaAtual + '</div>' +
             '</div>' +
           '</div>';
@@ -263,6 +281,9 @@
         }, 1000);
 
       } else if (modo === 'admin') {
+        document.body.style.backgroundColor = '#f1f5f9';
+        document.body.style.color = '#1e293b';
+        if (topHeader) topHeader.style.display = 'block';
         document.getElementById('btnAdmin').className = 'nav-btn active';
 
         var html = 
@@ -291,15 +312,18 @@
         container.innerHTML = html;
 
       } else {
+        document.body.style.backgroundColor = '#f1f5f9';
+        document.body.style.color = '#1e293b';
+        if (topHeader) topHeader.style.display = 'block';
         document.getElementById('btnMobile').className = 'nav-btn active';
 
         var html = 
           '<div class="container">' +
             '<div class="banner-chamada">' +
-              '<div style="font-size:0.85rem; text-transform:uppercase; font-weight:700;">Chamando na TV:</div>' +
+              '<div style="font-size:14px; text-transform:uppercase; font-weight:bold;">Chamando na TV:</div>' +
               '<div class="valor" id="mobTurma">' + turmaAtual + '</div>' +
             '</div>' +
-            '<div style="margin-bottom:10px; font-weight:700; color:#475569;">Clique para chamar:</div>' +
+            '<div style="margin-bottom:10px; font-weight:bold; color:#475569;">Clique para chamar:</div>' +
             '<div class="grid-turmas">';
 
         for (var j = 0; j < turmas.length; j++) {
@@ -310,7 +334,7 @@
         html += 
             '</div>' +
             '<div class="acoes-rapidas">' +
-              '<button class="btn-acao btn-cancelar" onclick="enviarRede(\'Chamada Cancelada\')">❌ Cancelar Chamada</button>' +
+              '<button class="btn-cancelar" onclick="enviarRede(\'Chamada Cancelada\')">❌ Cancelar Chamada</button>' +
             '</div>' +
             '<div class="card-box">' +
               '<h3>📋 Últimas Chamadas</h3>' +
